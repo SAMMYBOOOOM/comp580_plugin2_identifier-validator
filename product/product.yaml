@@ -7,14 +7,14 @@ summary: >-
   code, the structural fields (country code, check digits, BBAN, EAN prefix,
   body), and the check characters recomputed from the rest of the value.
   Every field is a pure function of the input, so the output can be verified
-  field by field without an LLM, a network call, or any hidden state.
+  field by field without an LLM, a network call, an API key, or any hidden
+  state.
 
 highlights:
   - ISO 13616 IBAN validation using the mod-97 rule plus the per-country length registry.
   - ISO 2108 ISBN-13 validation using the alternating 1/3 weighted sum and the 978/979 prefix rule.
   - A closed reason taxonomy (empty, invalid-characters, bad-format, bad-country, bad-length, check-digit-mismatch) so every rejection is unambiguous.
   - Emits computed_check, the correct check characters, which makes off-by-one checksum errors immediately visible.
-  - Zero network access, zero API keys, zero filesystem writes.
 
 steps:
   - "Pick the identifier family: pass kind as exactly \"iban\" or \"isbn13\". Lowercase, case-sensitive."
