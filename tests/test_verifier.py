@@ -1,13 +1,14 @@
-"""Tests for the independent identifier-validator verifier."""
+"""Tests for the identifier-validator verifier."""
 
-from __future__ import annotations
-
-from contract import ValidateInput
-from verifier.validate_identifier import verify_validate_identifier
+from verifier import verify_input, verify_output, verify_task
 
 
-def _iban_output(**overrides: object) -> dict[str, object]:
-    base: dict[str, object] = {
+def _input(kind: str, value: str) -> dict:
+    return {"kind": kind, "value": value}
+
+
+def _iban_output(**overrides: object) -> dict:
+    base: dict = {
         "kind": "iban",
         "normalized": "GB82WEST12345698765432",
         "valid": True,
@@ -24,8 +25,8 @@ def _iban_output(**overrides: object) -> dict[str, object]:
     return base
 
 
-def _isbn_output(**overrides: object) -> dict[str, object]:
-    base: dict[str, object] = {
+def _isbn_output(**overrides: object) -> dict:
+    base: dict = {
         "kind": "isbn13",
         "normalized": "9780306406157",
         "valid": True,
@@ -42,40 +43,35 @@ def _isbn_output(**overrides: object) -> dict[str, object]:
     return base
 
 
-def _iban_input(value: str) -> ValidateInput:
-    return ValidateInput(kind="iban", value=value)
-
-
 def test_verifier_accepts_correct_iban_output() -> None:
-    problem = verify_validate_identifier(
-        _iban_input("GB82WEST12345698765432"),
-        _iban_output(),
-    )
-    assert problem is None
+    inputs = _input("iban", "GB82WEST12345698765432")
+    output = _iban_output()
+    assert verify_input(inputs) is None
+    assert verify_output(inputs, output) is None
+    assert verify_task(inputs, output) is None
 
 
 def test_verifier_accepts_correct_isbn_output() -> None:
-    problem = verify_validate_identifier(
-        ValidateInput(kind="isbn13", value="978-0-306-40615-7"),
+    problem = verify_output(
+        _input("isbn13", "978-0-306-40615-7"),
         _isbn_output(),
     )
     assert problem is None
 
 
 def test_verifier_rejects_wrong_valid_flag() -> None:
-    problem = verify_validate_identifier(
-        _iban_input("GB82WEST12345698765432"),
+    problem = verify_output(
+        _input("iban", "GB82WEST12345698765432"),
         _iban_output(valid=False),
     )
     assert problem == "valid: expected True, got False"
 
 
 def test_verifier_rejects_wrong_reason() -> None:
-    # Input has a bad checksum; every field of the fixture matches what the
-    # verifier expects *except* `reason`, so `reason` is the field the
-    # verifier must report first among the remaining comparisons.
-    problem = verify_validate_identifier(
-        _iban_input("GB83WEST12345698765432"),
+    # Input has a bad checksum; every fixture field matches what the verifier
+    # expects except `reason`, so `reason` is the field that must surface.
+    problem = verify_output(
+        _input("iban", "GB83WEST12345698765432"),
         _iban_output(
             normalized="GB83WEST12345698765432",
             valid=False,
@@ -89,8 +85,8 @@ def test_verifier_rejects_wrong_reason() -> None:
 
 
 def test_verifier_rejects_wrong_computed_check() -> None:
-    problem = verify_validate_identifier(
-        _iban_input("GB82WEST12345698765432"),
+    problem = verify_output(
+        _input("iban", "GB82WEST12345698765432"),
         _iban_output(computed_check="83"),
     )
     assert problem == "computed_check: expected '82', got '83'"
@@ -99,24 +95,21 @@ def test_verifier_rejects_wrong_computed_check() -> None:
 def test_verifier_rejects_missing_field() -> None:
     output = _iban_output()
     del output["bban"]
-    problem = verify_validate_identifier(
-        _iban_input("GB82WEST12345698765432"),
-        output,
-    )
+    problem = verify_output(_input("iban", "GB82WEST12345698765432"), output)
     assert problem == "missing field: bban"
 
 
 def test_verifier_rejects_non_boolean_valid() -> None:
-    problem = verify_validate_identifier(
-        _iban_input("GB82WEST12345698765432"),
+    problem = verify_output(
+        _input("iban", "GB82WEST12345698765432"),
         _iban_output(valid=1),
     )
-    assert problem == "valid: expected bool, got int"
+    assert problem == "valid: expected bool"
 
 
 def test_verifier_accepts_empty_identifier_record() -> None:
-    problem = verify_validate_identifier(
-        _iban_input("   "),
+    problem = verify_output(
+        _input("iban", "   "),
         {
             "kind": "iban",
             "normalized": "",
@@ -135,9 +128,10 @@ def test_verifier_accepts_empty_identifier_record() -> None:
 
 
 def test_verifier_rejects_unknown_kind() -> None:
-    problem = verify_validate_identifier(
-        ValidateInput(kind="isin", value="US0378331005"),
+    problem = verify_output(
+        _input("isin", "US0378331005"),
         _iban_output(kind="isin"),
     )
     assert problem is not None
-    assert "kind must be one of" in problem
+    assert "kind" in problem
+    assert "isin" in problem

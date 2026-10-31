@@ -1,30 +1,19 @@
 """Typed input/output contracts for the identifier-validator plugin.
 
 Both the tool (``src/plugin/validate_identifier.py``) and the verifier
-(``verifier/validate_identifier.py``) import from this module. Neither
-imports the other: the verifier re-implements the standards independently.
-"""
+(``verifier/__init__.py``) import these dataclasses. Neither imports the
+other: the verifier re-implements the standards independently.
 
-from __future__ import annotations
+This module intentionally contains *only* dataclass definitions — no
+module-level constants, no helper functions — because the static contract
+checker treats any annotated module-level assignment as a dataclass field
+with a default and rejects it.
+"""
 
 from dataclasses import dataclass
 from typing import Annotated
 
 from slimconfig import Output
-
-KIND_IBAN = "iban"
-KIND_ISBN13 = "isbn13"
-
-KINDS: tuple[str, ...] = (KIND_IBAN, KIND_ISBN13)
-
-REASONS: tuple[str, ...] = (
-    "empty",
-    "invalid-characters",
-    "bad-format",
-    "bad-country",
-    "bad-length",
-    "check-digit-mismatch",
-)
 
 
 @dataclass

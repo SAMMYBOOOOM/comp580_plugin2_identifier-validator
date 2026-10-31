@@ -69,6 +69,4 @@ identifier-validator/
 │   ├── renderers.css
 │   └── renderers.js
 └── verifier/
-    ├── __init__.py
-    ├── checks.py
-    └── validate_identifier.py   # independent re-implementation
+    └── __init__.py              # verify_input / verify_output / verify_task

@@ -5,14 +5,16 @@ verifier re-implements the same rules independently so that a bug here
 cannot hide a bug there.
 """
 
-from __future__ import annotations
-
 import re
 
-from contract import KIND_IBAN, KIND_ISBN13, KINDS, ValidateInput, ValidateOutput
+from contract import ValidateInput, ValidateOutput
+
+KIND_IBAN = "iban"
+KIND_ISBN13 = "isbn13"
+KINDS = (KIND_IBAN, KIND_ISBN13)
 
 # IBAN registry: total identifier length per country code (ISO 13616 snapshot).
-IBAN_LENGTHS: dict[str, int] = {
+IBAN_LENGTHS = {
     "AD": 24,
     "AE": 23,
     "AL": 28,
@@ -161,7 +163,6 @@ def _make(
     kind: str,
     normalized: str,
     reason: str | None,
-    *,
     country_code: str | None = None,
     check_digits: str | None = None,
     bban: str | None = None,
@@ -303,10 +304,8 @@ def validate_identifier(payload: ValidateInput) -> ValidateOutput:
         ValueError: if ``payload.kind`` is not exactly ``"iban"`` or
             ``"isbn13"``.
     """
-    if payload.kind not in KINDS:
-        raise ValueError(f"kind must be one of {KINDS!r}, got {payload.kind!r}")
-
     if payload.kind == KIND_IBAN:
         return _validate_iban(payload.value)
-
-    return _validate_isbn13(payload.value)
+    if payload.kind == KIND_ISBN13:
+        return _validate_isbn13(payload.value)
+    raise ValueError(f"kind must be {KINDS!r}, got {payload.kind!r}")
