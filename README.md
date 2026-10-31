@@ -7,7 +7,7 @@ typed record — including the checksum it *should* have had.
 
 ## Tools
 
-### `validate_identifier`
+The plugin exposes one tool, `validate_identifier`.
 
 Input (`contract.ValidateInput`):
 
@@ -70,3 +70,19 @@ identifier-validator/
 │   └── renderers.js
 └── verifier/
     └── __init__.py              # verify_input / verify_output / verify_task
+```
+
+`contract.py` is the only module imported by _both_ sides. The verifier never imports `plugin.*`, and the tool never imports `verifier.*`. All verifier logic lives directly in `verifier/__init__.py` as the three entry points `verify_input(tool, inputs)`, `verify_output(tool, inputs, output, ctx)`, and `verify_task(task, tools, inputs, output, ctx)`.
+
+## Develop and run
+
+```bash
+uv sync --extra dev
+uv run pytest
+```
+
+Publishing checks every plugin rule: push the plugin to a public GitHub repository and run:
+
+```bash
+rush publish <server> <github-url>
+```
