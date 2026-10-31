@@ -1,0 +1,13 @@
+/* NanoAgent plugin renderer styles (reference scaffold, unchanged). */
+
+.nanoagent-renderer {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.nanoagent-renderer pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

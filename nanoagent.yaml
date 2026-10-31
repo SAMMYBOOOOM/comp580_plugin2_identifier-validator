@@ -1,0 +1,34 @@
+_ > nanoagent.plugin.v0001.ManifestConfig:
+id: identifier-validator
+name: Identifier Validator
+version: 0.1.0
+status: in-development
+spec: nanoagent.plugin/v0001
+
+runtime > nanoagent.plugin.v0001.RuntimeConfig:
+  type: mcp_stdio
+  command: [uv, run, --frozen, python, -m, plugin]
+
+permissions > nanoagent.plugin.v0001.PermissionsConfig:
+  network > nanoagent.plugin.v0001.NetworkConfig:
+    hosts: []
+  filesystem > nanoagent.plugin.v0001.FilesystemConfig:
+    write: [workspace]
+
+tools > dict[contract.Tool, nanoagent.plugin.v0001.ToolConfig]:
+  validate_identifier:
+    description: Validate an IBAN or ISBN-13 identifier and return its normalised form, structured fields, and the check characters it should have carried.
+
+tasks > dict[contract.Task, nanoagent.plugin.v0001.TaskConfig]:
+  validate-identifier:
+    description: Validate one IBAN or one ISBN-13 identifier and report a complete, machine-checkable validation record.
+    runner: tool
+    tools: [validate_identifier]
+    reference: null
+    instructions: >-
+      Read the task input, which provides `kind` (exactly "iban" or "isbn13")
+      and `value` (the raw identifier). Call the `validate_identifier` tool
+      with those two arguments and return its output unchanged. Do not
+      repair, guess, or complete the identifier; report exactly what the
+      deterministic rules produce, including the `reason` code for any
+      rejected input.
