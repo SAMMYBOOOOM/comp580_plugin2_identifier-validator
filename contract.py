@@ -10,7 +10,9 @@ Static-checker requirements satisfied here:
 - declares a ``Tool`` Enum and a ``Task`` Enum;
 - declares ``TOOLS`` mapping every ``Tool`` member to
   ``(input_class, output_class)`` and ``TASKS`` mapping every ``Task``
-  member to ``(input_class, output_class)``.
+  member to ``(input_class, output_class)``;
+- every class appearing in those tuples subclasses ``slimconfig.Output``
+  — including the *input* classes.
 
 ``TOOLS`` and ``TASKS`` are unannotated on purpose: the checker treats any
 annotated module-level assignment as a dataclass field with a default and
@@ -35,7 +37,7 @@ class Task(StrEnum):
 
 
 @dataclass
-class ValidateInput:
+class ValidateInput(Output):
     kind: Annotated[
         str,
         "Identifier family to validate. Exactly 'iban' or 'isbn13'; "
