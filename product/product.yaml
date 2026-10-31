@@ -17,9 +17,6 @@ highlights:
   - Zero network access, zero API keys, zero filesystem writes.
 
 steps:
-  - title: Pick the identifier family
-    detail: Pass kind as exactly "iban" or "isbn13". Lowercase, case-sensitive.
-  - title: Pass the raw identifier
-    detail: Spaces are ignored for both families; hyphens are ignored for ISBN-13. All other characters are significant.
-  - title: Read the record
-    detail: valid is true only when reason is null. For rejected inputs, reason names the first rule that failed and computed_check shows the expected check characters.
+  - "Pick the identifier family: pass kind as exactly \"iban\" or \"isbn13\". Lowercase, case-sensitive."
+  - "Pass the raw identifier: spaces are ignored for both families; hyphens are ignored for ISBN-13. All other characters are significant."
+  - "Read the record: valid is true only when reason is null. For rejected inputs, reason names the first rule that failed and computed_check shows the expected check characters."
