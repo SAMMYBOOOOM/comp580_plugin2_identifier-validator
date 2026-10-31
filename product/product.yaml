@@ -1,4 +1,3 @@
-_ > nanoagent.product.v0001.ProductConfig:
 tagline: Deterministic IBAN and ISBN-13 validation, with the checksum it should have had.
 
 summary: >-
