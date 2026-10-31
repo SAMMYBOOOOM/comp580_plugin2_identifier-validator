@@ -4,16 +4,19 @@ Both the tool (``src/plugin/validate_identifier.py``) and the verifier
 (``verifier/__init__.py``) import these definitions. Neither imports the
 other: the verifier re-implements the standards independently.
 
-The static contract checker requires this module to import only from
-``dataclasses``, ``enum``, ``slimconfig``, and ``typing``, and to declare
-both a ``Tool`` and a ``Task`` Enum. No module-level annotated constants
-may appear here (the checker would read them as dataclass fields with
-defaults).
+Static-checker requirements satisfied here:
 
-``Tool`` and ``Task`` derive from ``StrEnum`` so that a member compares
-equal to its value string: ``Tool.VALIDATE_IDENTIFIER == "validate_identifier"``
-is ``True``. That lets the verifier accept the framework's identifier
-whether it passes the enum member or the raw string.
+- imports only from ``dataclasses``, ``enum``, ``slimconfig``, ``typing``;
+- declares a ``Tool`` Enum and a ``Task`` Enum;
+- declares ``TOOLS`` mapping every ``Tool`` member to
+  ``(input_class, output_class)`` and ``TASKS`` mapping every ``Task``
+  member to ``(input_class, output_class)``.
+
+``TOOLS`` and ``TASKS`` are unannotated on purpose: the checker treats any
+annotated module-level assignment as a dataclass field with a default and
+rejects it. ``Tool`` and ``Task`` derive from ``StrEnum`` so a member
+compares equal to its value string, letting the verifier accept the
+identifier whether the framework passes the enum member or the raw string.
 """
 
 from dataclasses import dataclass
@@ -100,3 +103,12 @@ class ValidateOutput(Output):
         str | None,
         "ISBN-13 only: the supplied thirteenth digit.",
     ]
+
+
+TOOLS = {
+    Tool.VALIDATE_IDENTIFIER: (ValidateInput, ValidateOutput),
+}
+
+TASKS = {
+    Task.VALIDATE_IDENTIFIER: (ValidateInput, ValidateOutput),
+}
