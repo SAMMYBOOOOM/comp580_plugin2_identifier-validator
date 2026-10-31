@@ -1,19 +1,34 @@
 """Typed input/output contracts for the identifier-validator plugin.
 
 Both the tool (``src/plugin/validate_identifier.py``) and the verifier
-(``verifier/__init__.py``) import these dataclasses. Neither imports the
+(``verifier/__init__.py``) import these definitions. Neither imports the
 other: the verifier re-implements the standards independently.
 
-This module intentionally contains *only* dataclass definitions — no
-module-level constants, no helper functions — because the static contract
-checker treats any annotated module-level assignment as a dataclass field
-with a default and rejects it.
+The static contract checker requires this module to import only from
+``dataclasses``, ``enum``, ``slimconfig``, and ``typing``, and to declare
+both a ``Tool`` and a ``Task`` Enum. No module-level annotated constants
+may appear here (the checker would read them as dataclass fields with
+defaults).
+
+``Tool`` and ``Task`` derive from ``StrEnum`` so that a member compares
+equal to its value string: ``Tool.VALIDATE_IDENTIFIER == "validate_identifier"``
+is ``True``. That lets the verifier accept the framework's identifier
+whether it passes the enum member or the raw string.
 """
 
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Annotated
 
 from slimconfig import Output
+
+
+class Tool(StrEnum):
+    VALIDATE_IDENTIFIER = "validate_identifier"
+
+
+class Task(StrEnum):
+    VALIDATE_IDENTIFIER = "validate-identifier"
 
 
 @dataclass

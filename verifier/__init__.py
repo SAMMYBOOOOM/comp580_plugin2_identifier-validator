@@ -4,10 +4,17 @@ Independent re-implementation of the IBAN (ISO 13616) and ISBN-13
 (ISO 2108) rules. Deliberately duplicates the tool's logic instead of
 importing it, so a bug in the tool cannot hide a bug here.
 
-The three functions below are the RUSH Lab entry points. All take
-JSON-shaped dicts (``{"kind": ..., "value": ...}`` for input, the
-serialized ``ValidateOutput`` for output) and return ``None`` on success
-or a human-readable problem string on failure.
+Entry points (RUSH Lab ``nanoagent.plugin/v0001`` convention):
+
+- ``verify_input(tool, inputs)``                                — 2 args
+- ``verify_output(tool, inputs, output, ctx)``                  — 4 args
+- ``verify_task(task, tools, inputs, output, ctx)``             — 5 args
+
+All take the raw identifiers exactly as the framework passes them, and
+return ``None`` on success or a human-readable problem string on failure.
+The ``ctx`` argument is ignored: this plugin has ``reference: null``, so
+every expected value is derived from ``inputs`` rather than from a
+reference artifact.
 """
 
 import re
@@ -16,14 +23,8 @@ KIND_IBAN = "iban"
 KIND_ISBN13 = "isbn13"
 KINDS = (KIND_IBAN, KIND_ISBN13)
 
-REASONS = (
-    "empty",
-    "invalid-characters",
-    "bad-format",
-    "bad-country",
-    "bad-length",
-    "check-digit-mismatch",
-)
+TOOL_ID = "validate_identifier"
+TASK_ID = "validate-identifier"
 
 IBAN_LENGTHS = {
     "AD": 24,
@@ -328,10 +329,13 @@ def _expected_record(inputs):
     raise ValueError(f"kind must be {KINDS!r}, got {inputs['kind']!r}")
 
 
-def verify_input(inputs):
-    """Validate the raw input shape. None = OK, else a problem string."""
+def verify_input(tool, inputs):
+    """Validate the raw input shape for the given tool. None = OK."""
+    if tool != TOOL_ID:
+        return f"tool: expected {TOOL_ID!r}, got {tool!r}"
+
     if not isinstance(inputs, dict):
-        return "input: expected object"
+        return "inputs: expected object"
     if "kind" not in inputs:
         return "kind: missing"
     kind = inputs["kind"]
@@ -346,9 +350,14 @@ def verify_input(inputs):
     return None
 
 
-def verify_output(inputs, output):
-    """Re-derive the record from the raw input and compare it field by field."""
-    problem = verify_input(inputs)
+def verify_output(tool, inputs, output, ctx):
+    """Re-derive the record from ``inputs`` and compare it field by field.
+
+    ``ctx`` is accepted for signature compatibility with the framework and
+    ignored — this plugin has ``reference: null``, so the expected record is
+    computed from ``inputs`` alone.
+    """
+    problem = verify_input(tool, inputs)
     if problem is not None:
         return problem
 
@@ -385,6 +394,24 @@ def verify_output(inputs, output):
     return None
 
 
-def verify_task(inputs, output):
-    """Full task verification. Same as verify_output for this single-tool task."""
-    return verify_output(inputs, output)
+def verify_task(task, tools, inputs, output, ctx):
+    """Full task verification. Wraps ``verify_output`` after task/tool checks.
+
+    ``tools`` may be a single tool name or an iterable of names; either shape
+    is accepted. ``ctx`` is accepted for signature compatibility and ignored.
+    """
+    if task != TASK_ID:
+        return f"task: expected {TASK_ID!r}, got {task!r}"
+
+    if isinstance(tools, str):
+        tool_list = [tools]
+    else:
+        try:
+            tool_list = list(tools)
+        except TypeError:
+            return f"tools: expected iterable of names, got {tools!r}"
+
+    if TOOL_ID not in tool_list:
+        return f"tools: expected to include {TOOL_ID!r}, got {tool_list!r}"
+
+    return verify_output(TOOL_ID, inputs, output, ctx)

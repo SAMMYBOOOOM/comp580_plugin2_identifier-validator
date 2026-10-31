@@ -51,7 +51,7 @@ identifier-validator/
 ├── .gitignore
 ├── LICENSE
 ├── README.md
-├── contract.py                  # shared dataclasses (tool + verifier)
+├── contract.py                  # shared dataclasses + Tool/Task StrEnums
 ├── nanoagent.yaml
 ├── pyproject.toml
 ├── uv.lock
